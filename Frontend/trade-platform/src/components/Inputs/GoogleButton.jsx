@@ -1,38 +1,37 @@
 import { useState } from 'react';
-// import { useGoogleLogin } from '@react-oauth/google';
-import { FcGoogle } from 'react-icons/fc';
+import { GoogleLogin } from '@react-oauth/google';
+import { BASE_URL, API_PATHS } from '../../utils/apiPaths';
 
 const GoogleButton = ({ onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
 
-  // const login = useGoogleLogin({
-  //   flow: 'implicit', // or 'auth-code' if you want a server-side code exchange
-  //   scope: 'openid email profile',
-  //   onSuccess: async (tokenResponse) => {
-  //     setLoading(false);
-  //     // tokenResponse contains access_token, expires_in, etc.
-  //     // If you need id_token (JWT) for backend verification, switch to the "GoogleLogin" component,
-  //     // or use the 'auth-code' flow server-side. See note below.
-  //     onSuccess?.(tokenResponse);
-  //   },
-  //   onError: (err) => {
-  //     setLoading(false);
-  //     onError?.(err);
-  //   },
-  //   onNonOAuthError: () => setLoading(false),
-  //   prompt: 'select_account',
-  // });
-
   return (
-    <button
-      type="button"
-      onClick={() => { setLoading(true); login(); }}
-      className="w-full mt-3 inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 bg-white hover:bg-slate-50 transition disabled:opacity-60"
-      disabled={loading}
-    >
-      <FcGoogle size={20} />
-      {loading ? 'Connecting…' : 'Continue with Google'}
-    </button>
+    <div className="w-full mt-3">
+      <GoogleLogin
+        onSuccess={async (credentialResponse) => {
+          try {
+            setLoading(true);
+            const res = await fetch(`${BASE_URL}${API_PATHS.AUTH.GOOGLE_LOGIN}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: credentialResponse.credential }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Google login failed');
+            onSuccess?.(data); // { id, user, token }
+          } catch (err) {
+            onError?.(err);
+          } finally {
+            setLoading(false);
+          }
+        }}
+        onError={() => {
+          onError?.(new Error('Google sign-in was cancelled or failed.'));
+        }}
+        useOneTap={false} // set true if you want One Tap
+      />
+      {loading && <p className="text-xs text-slate-600 mt-1">Connecting…</p>}
+    </div>
   );
 }
 

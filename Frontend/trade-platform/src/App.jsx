@@ -8,6 +8,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Login from './pages/Auth/Login'
 import SignUp from './pages/Auth/SignUp'
 import UserProvider from './context/UserContext'
+import Home from './pages/Dashboard/Home';
 
 const GOOGLE_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -20,16 +21,7 @@ const App = () => {
             <Route path='/' element={<Root />} />
             <Route path='/login' element={<Login />} />
             <Route path='/signUp' element={<SignUp />} />
-
-            {/* Example protected route */}
-            {/* <Route
-              path='/dashboard'
-              element={
-                <RequireAuth>
-                  <Dashboard />
-                </RequireAuth>
-              }
-            /> */}
+            <Route path='/dashboard' element={<Home/>} />
           </Routes>
         </Router>
       </UserProvider>
@@ -45,10 +37,5 @@ const Root = () => {
   return isAuthenticated ? (
     <Navigate to="/dashboard" />) : (<Navigate to="/login" />);
 }; 
-
-const RequireAuth = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem('token');
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
 
 export default App

@@ -3,13 +3,17 @@ import AuthLayout from '../../components/layouts/AuthLayout';
 import Input from '../../components/Inputs/Input';
 import GoogleButton from '../../components/Inputs/GoogleButton';
 import { validateEmail } from '../../utils/helper'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom';
+import { API_PATHS } from '../../utils/apiPaths';
+import axiosInstance from '../../utils/axiosInstance';
 
 const Login = () => {
-  
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,13 +30,35 @@ const Login = () => {
     setError("");
 
     // Login API Call
+    try{
+      const {data} = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {email, password});
+      localStorage.setItem('token', data.token);
+      navigate('/dashboard')
+    } catch (err){
+      const msg = err?.response?.data?.message || err.message || 'Login failed';
+      setError(msg);
+    } finally{setLoading(false);}
+
   }
 
-  // const handleGoogleSuccess = async () => {}
+  const handleGoogleSuccess = (data) => {
+    try{
+      const GOOGLE_ENDPOINT = API_PATHS.AUTH.GOOGLE_LOGIN || '/api/v1/auth/google';
+      if (data?.token) {
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard');
+        return;
+      }
+      setError('Google sign-in response was not recognized.');
+    }catch (err){
+      const msg = err?.response?.data?.message || err.message || 'Google sign-in failed';
+      setError(msg);
+    } finally{setLoading(false);}
+  };
 
-  // const handleGoogleError = () => {
-  //   setError('Google sign-in was cancelled or failed.');
-  // };
+  const handleGoogleError = (err) => {
+    setError(err.message || 'Google sign-in was cancelled or failed.')
+  }
   
   return (
     <AuthLayout>
@@ -62,11 +88,15 @@ const Login = () => {
 
           <button
             type='submit'
-            className='btn-slate-900 mt-2'>LOGIN</button>
+            className='btn-slate-900 mt-2'
+            disabled={loading}
+          >
+            {loading ? 'Logging in…' : 'LOGIN'}
+          </button>
 
           <GoogleButton
-            // onSuccess={handleGoogleSuccess}
-            // onError={handleGoogleError}
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
           />
 
           <p className='text-[13px] text-slate-800 mt-3'>

@@ -1,8 +1,12 @@
-import React, {useState} from 'react'
-import { Link} from 'react-router-dom'
+import React, {useContext ,useState} from 'react'
+import { Link, useNavigate} from 'react-router-dom'
 import { validateEmail } from '../../utils/helper';
 import AuthLayout from '../../components/layouts/AuthLayout';
 import Input from '../../components/Inputs/Input';
+import axiosInstance from '../../utils/axiosInstance';
+import { API_PATHS } from '../../utils/apiPaths';
+import { UserContext } from '../../context/create_context';
+
 
 
 const SignUp = () => {
@@ -12,7 +16,8 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
-  // const navigate = useNavigate();
+  const {updateUser}  = useContext(UserContext);
+  const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -34,6 +39,26 @@ const SignUp = () => {
     setError("");
   
     //signUp API Call
+    try{
+      const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, {
+        fullName,
+        email,
+        password
+      });
+
+      const {token, user} = response.data;
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(user)
+        navigate("/login")
+      }
+    } catch(err){
+      if (err.response && err.response.data.message) {
+        setError(err.response.data.message);
+      }else{
+        setError("something went wrong, Please try again");
+      }
+    }
   }
   
   return (
@@ -78,7 +103,7 @@ const SignUp = () => {
           
           <button
             type='submit'
-            className='btn-blue-900'>
+            className='btn-slate-900 mt-2'>
               <Link to='/login'>SignUp</Link>
             </button>
           
