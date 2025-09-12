@@ -60,7 +60,7 @@ exports.googleAuth = async (req, res) => {
             },
             token: generateToken(user._id)
         });
-    } catch (error) {
+    } catch (err) {
         console.error('googleAuth error:', err);
         return res.status(401).json({ message: 'Google sign-in failed', error: err.message });
     }
