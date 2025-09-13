@@ -10,4 +10,9 @@ export const API_PATHS = {
     DASHBOARD:{
         GET_DASHBOARD_INFO: "/api/v1/dashboard/"
     },
+    INVESTMENT:{
+        BUYSTOCK:'/api/v1/investments/buyStock',
+        SELLSTOCK:'/api/v1/investments/sellStock',
+        GET_STOCK_INFO:'/api/v1/investments/getStockInfo',
+    },
 }

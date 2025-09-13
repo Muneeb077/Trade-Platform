@@ -1,11 +1,12 @@
 const getStockData = require('../models/stockAPI.js')
 const { isValidObjectId, Types} = require("mongoose")
+const Investment = require('../models/investment.js')
 
 exports.getDashboardData = async (req, res) => {
     try{
         const userId = req.user.id;
-        const userObjectId = new Types.ObjectId(String(userId));
-        const stock_list = ['AAPL', 'NVDA', 'TSLA', 'INTC', 'NKE', 'HD'];
+        const userObjectId = new Types.ObjectId(String(userId)); // try to comment this line
+        const stock_list = ['AAPL', 'NVDA', 'TSLA', 'INTC', 'HD'];
 
         const results = await Promise.allSettled(
         stock_list.map(ticker => getStockData(ticker))
@@ -17,17 +18,20 @@ exports.getDashboardData = async (req, res) => {
             : { ticker: stock_list[i], error: r.reason?.message || 'Unknown error' }
         );
 
-        console.log('Stocks data:', {
-        dashboardStockList,
-        userIdIsValid: isValidObjectId(userId),
-        });
-        const totalBalance = 1000;
-        const Investments = 0;
+        const investments = await Investment.find({userId}).sort({date:-1});
+        const totalInvestment = investments
+            .filter(inv => inv.type === 'buy')
+            .reduce((sum, inv) => sum + inv.amount, 0);
+        const balance = investments.length > 0 ? investments[0].balance : 1000;
+        const last5Sales = investments
+            .filter(inv => inv.type === 'buy')
+            .slice(0, 5);
 
         res.json({
-            totalBalance,
+            balance,
+            totalInvestment,
             dashboardStockList,
-            Investments,
+            last5Sales,
         })
     } catch(error){
         res.status(500).json({message:"Server Error", error});

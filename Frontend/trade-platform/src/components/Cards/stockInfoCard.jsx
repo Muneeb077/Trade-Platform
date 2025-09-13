@@ -7,7 +7,7 @@ const StockInfoCard = ({ symbol, open, close, date }) => {
   const percentChange = (((close - open) / open) * 100).toFixed(2)
 
   return (
-    <div className='group relative flex items-center gap-4 mt-2 p-3 rounded-lg hover:bg-gray-100/60'>
+    <div className='group relative flex items-center gap-4 mt-2 p-3 rounded-lg hover:bg-blue-50'>
       {/* Symbol Circle */}
       <div className='w-12 h-12 flex items-center justify-center text-sm font-bold text-gray-800 bg-gray-100 rounded-full'>
         {symbol || "?"}

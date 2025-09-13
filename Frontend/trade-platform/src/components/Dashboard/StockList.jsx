@@ -5,7 +5,7 @@ import StockInfoCard from '../Cards/stockInfoCard'
 
 const StockList = ({dashboardStockList}) => {
   return (
-    <div className='card'>
+    <div className='card bg-sky-100 rounded-lg'>
       <div className='flex items-center justify-between'>
         <h5 className='text-lg'>Stocks List</h5>
       </div>
