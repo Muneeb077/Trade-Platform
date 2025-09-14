@@ -6,12 +6,14 @@ export const validateEmail = (email) => {
 };
 
 export const addThousandSeparator = (num) => {
-    if (num == null || isNaN(num)) return "";
+  if (num == null || isNaN(num)) return "";
 
-    const [integerPart, fractionalPart] = num.toString().split(".");
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const formatted = Number(num).toFixed(2);
 
-    return fractionalPart ? `${formattedInteger}.${fractionalPart}` : formattedInteger;
+  const [integerPart, fractionalPart] = formatted.split(".");
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  return fractionalPart ? `${formattedInteger}.${fractionalPart}` : formattedInteger;
 };
 
 export const getInitials = (name) => {
@@ -27,11 +29,41 @@ export const getInitials = (name) => {
     return initials.toUpperCase();
 };
 
-export const prepareInvestmentLineChartData = (data = []) => {
-    const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
-    return sortedData.map((item) => ({
-        month: moment(item?.date).format('Do MMM'),
-        amount: Number(item?.amount) || 0,
-        symbol: item?.symbol,
-    }));
-}
+export const prepareInvestmentLineChartData = (rows = []) => {
+  if (!Array.isArray(rows)) rows = [];
+
+  // sort by actual time
+  const sorted = [...rows].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // bucket by date (YYYY-MM-DD)
+  const byDate = new Map();
+  const symbols = new Set();
+
+  for (const item of sorted) {
+    const d = item?.date ? moment(item.date) : null;
+    if (!d || !d.isValid()) continue;
+
+    const key = d.format("YYYY-MM-DD");
+    const sym = (item?.symbol || "").toUpperCase().trim();
+    const amt = Number(item?.amount) || 0;
+    if (!sym) continue;
+
+    symbols.add(sym);
+
+    if (!byDate.has(key)) {
+      byDate.set(key, {
+        dateISO: key,
+        month: d.format("Do MMM"),
+      });
+    }
+    const entry = byDate.get(key);
+    entry[sym] = (entry[sym] || 0) + amt; // sum if multiple same-day txns
+  }
+
+  // produce sorted array
+  const data = Array.from(byDate.values()).sort(
+    (a, b) => new Date(a.dateISO) - new Date(b.dateISO)
+  );
+
+  return { data, seriesKeys: Array.from(symbols) };
+};

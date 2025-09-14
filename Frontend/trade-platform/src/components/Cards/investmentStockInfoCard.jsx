@@ -7,7 +7,11 @@ const formatCurrency = (n) =>
 const formatDate = (d) => {
   try {
     const dateObj = d instanceof Date ? d : new Date(d)
-    return dateObj.toLocaleString()
+    return dateObj.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   } catch {
     return String(d ?? '')
   }
@@ -17,9 +21,7 @@ const investmentStockInfoCard = ({
   symbol,
   type,
   numOfStocks,
-  pricePerStock,
   amount,
-  balance,
   date
 }) => {
   const isSell = type === 'sell'
@@ -51,26 +53,12 @@ const investmentStockInfoCard = ({
         </div>
 
         <p className="text-xs text-gray-400 mt-1">{formatDate(date)}</p>
-
+        
         {/* Details */}
         <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div className="text-xs text-gray-500">
             <p className="uppercase tracking-wide">Shares</p>
             <p className="text-gray-800 font-medium">{numOfStocks}</p>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p className="uppercase tracking-wide">Price/Share</p>
-            <p className="text-gray-800 font-medium">{formatCurrency(pricePerStock)}</p>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p className="uppercase tracking-wide">Amount</p>
-            <p className={`font-medium ${isSell ? 'text-green-700' : 'text-red-700'}`}>
-              {isSell ? '+' : '-'}{formatCurrency(amount)}
-            </p>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p className="uppercase tracking-wide">Balance</p>
-            <p className="text-gray-800 font-medium">{formatCurrency(balance)}</p>
           </div>
         </div>
       </div>

@@ -148,11 +148,22 @@ exports.sellStock = async (req, res) => {
 };
 
 exports.getStockInfo = async (req, res) => {
-    const userId = req.user.id;
-    try{
-        const investment = await Investment.find({userId}).sort({date: -1});
-        res.json(investment)
-    } catch (error){
-        res.status(500).json({message:"Server Error"});
-    }
-}
+  const userId = req.user.id;
+  const includeTransactions = String(req.query.includeTransactions || '').toLowerCase() === 'true';
+
+  try {
+    const [holdings, transactions] = await Promise.all([
+      // Only holdings with remaining shares
+      Holding.find({ userId, numOfStocks: { $gt: 0 } }).sort({ updatedAt: -1 }),
+      includeTransactions ? Investment.find({ userId }).sort({ date: -1 }) : Promise.resolve([]),
+    ]);
+
+    res.json({
+      holdings,
+      ...(includeTransactions ? { transactions } : {}),
+    });
+  } catch (error) {
+    console.error('Error fetching stock info:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};

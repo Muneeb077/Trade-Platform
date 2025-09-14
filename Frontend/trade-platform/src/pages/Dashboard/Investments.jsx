@@ -14,7 +14,8 @@ import Modal from '../../components/Modal';
 
 const Investments = () => {
     useUserAuth();
-    const [investmentData, setInvestmentData] = useState([]);
+    const [transactions, setTransactions] = useState([]);   // <-- array, safe for .map
+    const [holdings, setHoldings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [OpenBuyInvestmentModel, setOpenBuyInvestmentModel] = useState(false);
     const [OpenSellInvestmentModel, setOpenSellInvestmentModel] = useState(false);
@@ -25,15 +26,16 @@ const Investments = () => {
         setLoading(true);
 
         try{
-            const response = await axiosInstance.get(
-                `${API_PATHS.INVESTMENT.GET_STOCK_INFO}`
-            )
-
+            const url = `${API_PATHS.INVESTMENT.GET_STOCK_INFO}?includeTransactions=true`;
+            const response = await axiosInstance.get(url);
             if (response.data){
-                setInvestmentData(response.data)
+                setTransactions(response.data.transactions ?? []);
+                setHoldings(response.data.holdings ?? []);
             }
         } catch (error){
             console.log("Something went wrong. Please try again", error)
+            setTransactions([]); // fail-safe so .map doesn’t explode
+            setHoldings([]);
         } finally{
             setLoading(false)
         }
@@ -104,18 +106,20 @@ const Investments = () => {
             <div className='grid grid-cols-1 gap-6'>
                 <div className=''>
                     <InvestmentOverview
-                        investments={investmentData}
+                        investments={transactions}
+                        holdings={holdings}
                         onBuyStock = {() => setOpenBuyInvestmentModel(true)}
                         onSellStock = {() => setOpenSellInvestmentModel(true)}
+                        loading={loading}
                     />
                 </div>
             </div>
             <div className='grid grid-cols-2 gap-6'>
                 <BuyList
-                    investments={investmentData}
+                    investmentData={transactions}
                 />
                 <SellList
-                    investments={investmentData}
+                    investmentData={transactions}
                 />
             </div>
             <Modal
