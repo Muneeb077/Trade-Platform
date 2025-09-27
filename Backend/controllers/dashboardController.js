@@ -5,7 +5,7 @@ const Investment = require('../models/investment.js')
 exports.getDashboardData = async (req, res) => {
     try{
         const userId = req.user.id;
-        const userObjectId = new Types.ObjectId(String(userId)); // try to comment this line
+        const userObjectId = new Types.ObjectId(String(userId));
         const stock_list = ['AAPL', 'NVDA', 'TSLA', 'INTC', 'HD'];
 
         const results = await Promise.allSettled(
